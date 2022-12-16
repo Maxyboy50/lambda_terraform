@@ -1,0 +1,2 @@
+"${var.event_source.sms-stream.event_source_name}" ={
+      event_source_arn = (var.event_source.sms-stream.event_source_arn)
