@@ -6,6 +6,10 @@ provider "aws" {
 #  source_dir  = "${path.module}/builds/"
 #  output_path = "${path.module}/builds/python.zip"
 #}
+locals {
+  timestamp = timestamp()
+}
+
 resource "aws_kinesis_stream" "this"{
   name = "kinesis_stream_test"
   shard_count = 1
@@ -15,8 +19,8 @@ module "lambda" {
   source                  = "terraform-aws-modules/lambda/aws"
   version                 = "4.7.1"
   function_name           = "test-lambda"
-  #lambda_role             = "arn:aws:iam::912434042761:role/lambda_terraform_role"
-  #create_role             = false
+  lambda_role             = "arn:aws:iam::912434042761:role/lambda_terraform_role"
+  create_role             = false
   handler                 = "index.lambda_handler"
   runtime                 = "python3.8"
   create_package          = false
@@ -50,8 +54,15 @@ resource "aws_lambda_event_source_mapping" "remind_me"{
   }
 }
 
-resource "time_static" "test_value"{}
+resource "time_static" "test_value"{
+  triggers = {
+    lambda_modified = local.timestamp
+}
+}
 
 output "unix" {
   value = time_static.test_value.unix  
+}
+output "record_window"{
+  value = timeadd(time_static.test_value.rfc3339, "-1560h")
 }
